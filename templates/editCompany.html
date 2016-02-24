@@ -1,0 +1,29 @@
+{% extends "itemCatalogMain.html" %}
+{% block content %}
+
+	<div class = 'row title'>
+		<div class = 'col-sm-12'>
+			<h1>Edit Company Profile</h1>
+		</div>
+	</div>
+
+	<div class = 'row'>
+		<div class = 'col-sm-12>'>
+			<p>Update your vendor profile below.</p>
+			<form method = 'POST'>
+				<div class = 'form-group'>
+					<label for = 'name'>Name:</label> 
+					<input type = 'text' name = 'name' size = '60' value = '{{ company.name }}' required>
+					</br>
+					<label for = 'location'>Location:</label>
+					<input type = 'text' name = 'location' size = '100' value = '{{ company.location }}'>
+					</br></br>
+					<input type = 'submit' value = 'Save Changes'>
+					<a href = '{{ url_for("showItems", company_id = company.id) }}'>Cancel</a>
+				</div>
+			</form>
+		</div>
+	</div>
+
+
+{% endblock %}

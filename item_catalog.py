@@ -23,11 +23,6 @@ session = DBSession()
 
 #----------------------------------------------------------------------
 
-
-
-
-#----------------------------------------------------------------------
-
 # Home page showing list of all categories.
 @app.route('/')
 @app.route('/categories/')
@@ -58,6 +53,33 @@ def addCompany():
 		return redirect(url_for('showCompanies'))
 	else:
 		return render_template('addCompany.html')
+
+# Edit an existing vendor partner.
+@app.route('/companies/<int:company_id>/edit/', methods = ['GET', 'POST'])
+def editCompany(company_id):
+	company = session.query(Company).filter_by(id = company_id).one()
+	if request.method == 'POST':
+		company.name = request.form['name']
+		company.location = request.form['location']
+		session.commit()
+		return redirect(url_for('showItems', company_id = company_id))
+	else:
+		return render_template('editCompany.html', company = company)
+
+# Delete company profile.
+@app.route('/companies/<int:company_id>/delete/', methods = ['GET', 'POST'])
+def deleteCompany(company_id):
+	company = session.query(Company).filter_by(id = company_id).one()
+	if request.method == 'POST':
+		itemsToDelete = session.query(CatalogItem).filter_by(company_id = company_id).all()
+		for item in itemsToDelete:
+			session.delete(item)
+		session.delete(company)
+		session.commit()
+		return redirect(url_for('showCompanies'))
+	else:
+		return render_template('deleteCompany.html', company = company)
+
 
 # Shows all items across all categories from a given vendor.
 @app.route('/companies/<int:company_id>/items')

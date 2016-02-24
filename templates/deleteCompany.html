@@ -1,0 +1,24 @@
+{% extends "itemCatalogMain.html" %}
+{% block content %}
+
+	<div class = 'row title'>
+		<div class = 'col-sm-12'>
+			<h1>Delete Company Profile</h1>
+		</div>
+	</div>
+
+	<div class = 'row'>
+		<div class = 'col-sm-12>'>
+			<h4>You are about to delete the entire profile for: </br></br><strong>{{company.name }}</strong></br></br>This will also delete all items that are being sold on its behalf.  </br><strong>The cannot be undone.</strong>  Are you sure you want to proceed?</h4>
+			<form method = 'POST'>
+				<div class = 'form-group'>
+					<input type = 'submit' value = 'Delete Profile'>
+					<a href = '{{ url_for("showItems", company_id = company.id) }}'>Cancel</a>
+				</div>
+			</form>
+		</div>
+	</div>
+
+
+
+{% endblock %}
