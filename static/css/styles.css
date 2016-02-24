@@ -1,0 +1,34 @@
+* {
+	font-family: 'Roboto Condensed', sans-serif;
+}
+
+.title {
+	border: 4px;
+	border-style: solid;
+	border-color: black;
+	text-align: center;
+	margin-top: 5px;
+	margin-bottom: 20px;
+	background-color: #00CCFF;
+	font-family: 'Roboto Condensed', sans-serif;
+}
+
+.company-container {
+	border: 2px;
+	border-style: solid;
+	margin-bottom: 25px;
+	padding-bottom: 20px;
+}
+
+.item-name {
+	font-size: 20px;
+}
+
+.item-description {
+	font-style: italic;
+}
+
+.price {
+	font-style: bold;
+	font-style: italic;
+}

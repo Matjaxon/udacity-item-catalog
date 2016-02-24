@@ -1,0 +1,24 @@
+{% extends "itemCatalogMain.html" %}
+{% block content %}
+	<div class = "row">
+		<div class ="col-sm-12 title">
+			<h1>Join Our Vendor Family</h1>
+		</div>
+		<div class = "col-sm-12">
+			If you would like to have your goods featured on our site, please fill out the simple form below:
+		</br></br>
+			<form method = "post">
+				<div class = "form-group">
+					<label for ="name">Name:</labeL>
+					<input type='text' size = '30' name='name' placeholder = 'Company Name' required>
+					<label for='Company Location'>Location:</lable>
+					<input type = 'text' size  ='100' name='location'>
+				</br></br>
+					<input type = 'submit' value = "Register">
+					<a href = '{{ url_for("showCompanies") }}'>Cancel</a>
+				</div>
+			</form>
+		<div>
+	</div>
+
+{% endblock %}

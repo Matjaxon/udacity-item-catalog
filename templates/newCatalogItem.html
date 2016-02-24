@@ -1,0 +1,47 @@
+{% extends "itemCatalogMain.html" %}
+{% block content %}
+
+	<div class = "row title">
+		<div class = "col-sm-12">
+			<h1>Create a New Item</h1>
+		</div>
+	</div>
+
+	<div class = "row">
+		<div class = "col-12-sm">
+			<h5>To feature a new item from <strong>{{company.name}}</strong>, please fill out the information below:</h5>
+		</div>
+	</div>
+	<div class = "row">
+		<div class = "col-12-sm">
+			<form action = "#" method = 'post'>
+				
+				<label>Item Name:</label>
+				<input type = 'text' size = '30' name = 'name' required></br></br>
+				
+				<label>Descirption:</label>
+				<input type = 'text' size = '100' name = 'description' required></br></br>
+				
+				<label>Department:</label></br>
+				<input type = 'radio' name = 'category' value = 'clothing' required> Clothing</br>
+				<input type = 'radio' name = 'category' value = 'electronics' required> Electronics</br>
+				<input type = 'radio' name = 'category' value = 'furniture' required> Furniture</br>
+				<input type = 'radio' name = 'category' value = 'gifts' required> Gifts</br>
+				<input type = 'radio' name = 'category' value = 'home_decor' required> Home Decor</br>
+				<input type = 'radio' name = 'category' value = 'sports' required> Sports</br>				
+				<input type = 'radio' name = 'category' value = 'tools' required> Tools</br>
+				<input type = 'radio' name = 'category' value = 'toys' required> Toys</br>
+				</br>
+
+				<label>Price:</label>
+				<input type = 'text' size = '10' name = 'price' placeholder= "$19.99"></br></br>
+
+				<input type = 'submit' value = 'Create'>
+				<a href = '{{ url_for("showItems", company_id = company.id) }}'>Cancel</a>
+
+			</form>
+		</div>
+	</div>
+
+
+{% endblock %}

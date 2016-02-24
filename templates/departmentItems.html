@@ -1,0 +1,32 @@
+{% extends "itemCatalogMain.html" %}
+{% block content %}
+
+	<div class ="row">
+		<div class = "col-sm-12 title">
+			<h1>{{ department.capitalize() }}</h1>
+		</div>
+	</div>
+
+	{% for item in items %}
+
+	<div class = "row">
+		<div class = "col-sm-12">
+			<p class = 'item-name'>{{ item.name }}</p>
+		</div>
+	</div>
+	<div class = "row">
+		<div class = 'col-sm-10'>	
+			<p class = 'item-description'>{{ item.description }}</p>
+		</div>
+		<div class = 'col-sm-2 price'>
+			<p>{{ item.price}}</p>
+		</div>
+		<div class = 'col-sm-12'>
+			<p>Sold on behalf of <a href = '{{url_for("showItems", company_id = item.company.id )}}'>{{ item.company.name }}</a></p>
+		</div>
+	</div>
+	</br>
+
+	{% endfor %}
+
+{% endblock %}

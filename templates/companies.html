@@ -1,0 +1,39 @@
+{% extends "itemCatalogMain.html" %}
+{% block content %}
+
+	<div class ="row">
+		<div class = "col-sm-12 title">
+			<h1>Featured Sellers</h1>
+		</div>
+	</div>
+
+	<div class = 'container company-container'>
+		<h3 style = 'padding-top: 20px'>We proudly sell goods produced or distributed by the following companies:</h3></br>
+		
+		<ul>
+
+		{% for company in companies %}
+
+		<div class = "row">
+			<div class = "col-sm-12">
+				<li><h4><a href = "{{ url_for('showItems', company_id = company.id) }}">{{ company.name }}</a></h4></li>
+			</div>
+		</div>
+
+		{% endfor %}
+
+		</ul>
+
+
+	</div>
+
+	<div class = "row">
+		<div class = "col-sm-12">
+			<h5>If you would like to register as a new seller please click <a href = 
+			'{{ url_for("addCompany") }}'>here</a>.</h5>
+		</div>
+	</div>
+
+
+
+{% endblock %}

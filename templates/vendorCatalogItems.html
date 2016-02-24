@@ -1,0 +1,49 @@
+{% extends "itemCatalogMain.html" %}
+{% block content %}
+
+	<div class = "row title">
+		<div class = "col-sm-12">
+			<h1>{{ company.name }}</h1>
+		</div>
+	</div>
+
+	{% for department in departments %}
+		<div class = "row">
+			<h3>{{department[0].capitalize() + ':'}}</h3>
+		</div>
+
+		{% for item in items %}
+			{% if item.category == department[0] %}
+			<div class = "row">
+				<div class = "col-sm-12">
+					<p class = 'item-name'>{{ item.name }}</p>
+				</div>
+			</div>
+			<div class = "row">
+				<div class = 'col-sm-10'>	
+					<p class = 'item-description'>{{ item.description }}</p>
+				</div>
+				<div class = 'col-sm-2 price'>
+					<p>{{ item.price}}</p>
+				</div>
+			</div>
+			{% endif %}
+		{% endfor %}
+	{% endfor %}
+
+	<div class = "row" style = "margin-top: 20px">
+		<div class = "col-sm-12">
+			<a href = "{{ url_for('addItems', company_id = company.id) }}"><h4>Add new available items</h4></a>
+		</div>
+	</div>
+
+	<div class = "row">
+		<div class = "col-sm-4">
+			<a href = '#'><h5>Edit company profile</h5></a>
+		</div>
+		<div class = "col-sm-4">
+			<a href = '#'><h5>Delete company profile</h5></a>
+		</div>
+	</div>
+
+{% endblock %}

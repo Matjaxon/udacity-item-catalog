@@ -1,0 +1,29 @@
+{% extends "itemCatalogMain.html" %}
+{% block content %}
+	<div class ="row">
+		<div class = "col-sm-12 title">
+			<h1>Main Categories Page</h1>
+		</div>
+	</div>
+
+	<div class = 'row'>
+		<div claa = 'col-sm-12'>
+			<h3>Welcome!  Begin shopping by selecting a department.</h3>
+		</div>
+	</div>
+
+	{% for department in departments %}
+
+	<div class = "row">
+		<div class = "col-sm-12">
+			<h4><a href = "{{ url_for('showCategoryItems', department = department[0]) }}">{{ department[0].capitalize() }}</a></h4>
+		</div>
+	</div>
+	{% endfor %}
+
+	<div class = "row">
+		<div class = "col-sm-12" style = "margin-top: 20px">
+			<p>Looking for a specific seller?  Find a list of all partner companies <a href = "{{ url_for('showCompanies') }}">here</a>.</p>
+		</div>
+
+{% endblock %}
