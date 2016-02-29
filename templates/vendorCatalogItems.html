@@ -7,6 +7,28 @@
 		</div>
 	</div>
 
+	{% with messages = get_flashed_messages() %}
+
+	<div class = "row">
+
+		{% if messages %}
+
+		<div class = 'col-sm-12 flash'>
+			<ul>
+				{% for message in messages %}
+					<li><strong> {{ message }} </strong></li>
+				{% endfor %}
+			</ul>
+		</div>
+		</br>
+		</br>
+
+		{% endif %}
+
+	</div>
+
+	{% endwith %}
+
 	{% for department in departments %}
 		<div class = "row">
 			<h3>{{department[0].capitalize() + ':'}}</h3>
@@ -20,11 +42,15 @@
 				</div>
 			</div>
 			<div class = "row">
-				<div class = 'col-sm-10'>	
+				<div class = 'col-sm-9'>	
 					<p class = 'item-description'>{{ item.description }}</p>
 				</div>
 				<div class = 'col-sm-2 price'>
 					<p>{{ item.price}}</p>
+				</div>
+				<div class = 'col-sm-1'>
+					<a href = '{{ url_for("editItem", company_id = company.id, item_id = item.id) }}'>Edit</a> | 
+					<a href = '{{ url_for("deleteItem", company_id = company.id, item_id = item.id) }}'>Delete</a>
 				</div>
 			</div>
 			{% endif %}

@@ -1,0 +1,138 @@
+{% extends "itemCatalogMain.html" %}
+{% block content %}
+
+	<div class ="row">
+		<div class = "col-sm-12 title">
+			<h1>Login to Your Account</h1>
+		</div>
+	</div>
+
+	<!-- GOOGLE PLUS SIGN IN -->
+
+	<div id="signInButton">
+		<!-- The data-scope below determines what info is requested. -->
+		<!-- View the openid profile to see what data is in scope. -->
+		<!-- View openId documentation here:  https://developers.google.com/+/web/api/rest/openidconnect/getOpenIdConnect -->
+		<!-- For cookiepolicy use single_host_origin if we do not have any subdomains -->
+		<!-- Callback parameter specifies a callback function.  If a user clicks and grants our appplication access to their profile, this callback method is called and given the one time use code, along with an access token -->
+		<!-- approvalprompt set to 'force' means that our user has to login each time we visit the login page, and doesn't check to see if they're already logged in. -->
+		<span 
+		class="g-signin"
+	    data-scope="openid email"
+	    data-clientid="925684517617-ue712fgbn4p3vk52u2dn97u89v6rj8as.apps.googleusercontent.com"
+	    data-redirecturi="postmessage"
+	    data-accesstype="offline"
+	    data-cookiepolicy="single_host_origin"
+	    data-callback="signInCallback"
+	    data-approvalprompt="force">	
+		</span>
+	</div>
+	<div id="result"></div>
+
+	<script>
+	function signInCallback(authResult) {
+		console.log("signInCallback started.")
+		if (authResult['code']) {
+			
+			// Hide the sign-in button now that we are authorized.
+			$('#signinButton').attr('style', 'display: none');
+
+			// Sends the one-time-use code to the server, if the server responds, write a 'login successful' message to the web page and then redirect to the main restaurants page.
+			$.ajax({
+				type: 'POST',
+				
+				//gconnect method will be defined later.  Along with the method, the server state token is passed as an argument to verify against the cross-site reference forgery attack.
+				url: '/gconnect?state={{STATE}}',
+				
+				//Indicates that we do not want JQuery to process the response into a string.
+				processData: false, 
+		
+				//Specify data that will be sent along to our server; the one time use token.
+				data: authResult['code'],
+
+				//Indicates that we are sending an arbitrary binary stream of data.  Charset equal to utf-8 indicates that it is formatted using a universal character set called Unicode.
+				contentType: 'application/octet-stream; charset=utf-8', 
+
+				success: function(result) {  //If status 200 is returned.
+					if (result) {
+						$('#result').html('Login Successful!</br>' + result + '</br>Redirecting...')
+						setTimeout(function() {
+						window.location.href = "/categories";
+						}, 4000);
+					} else if (authResult['error']) {
+
+			console.log('There was an error: ' + authResult['error']);
+		} else {
+				$('#result').html('Failed to make a server-side call.  Check your configuration and console.');
+				}
+			}
+		});  } }
+	</script>
+
+	<!-- END GOOGLE PLUS SIGN IN -->
+
+	<!-- FACEBOOK LOGIN -->
+	<script>
+		window.fbAsyncInit = function() {
+		FB.init({
+		  appId      : '1502319083408908',
+		  xfbml      : true,
+		  version    : 'v2.5'
+		});
+		};
+
+		(function(d, s, id){
+			var js, fjs = d.getElementsByTagName(s)[0];
+			if (d.getElementById(id)) {return;}
+			js = d.createElement(s); js.id = id;
+			js.src = "//connect.facebook.net/en_US/sdk.js";
+			fjs.parentNode.insertBefore(js, fjs);
+		}(document, 'script', 'facebook-jssdk'));
+
+		// Here we run a very simple test of the Graph API after login is sucessful.
+		// See statusChangeCallback() for when this call is made.
+	  function sendTokenToServer() {
+	    var access_token = FB.getAuthResponse()['accessToken'];
+	    console.log(access_token)
+	    console.log('Welcome!  Fetching your information.... ');
+	    FB.api('/me', function(response) {
+	      console.log('Successful login for: ' + response.name);
+	     $.ajax({
+	      type: 'POST',
+	      url: '/fbconnect?state={{STATE}}',
+	      processData: false,
+	      data: access_token,
+	      contentType: 'application/octet-stream; charset=utf-8',
+	      success: function(result) {
+	        // Handle or verify the server response if necessary.
+	        if (result) {
+	          $('#result').html('Login Successful!</br>'+ result + '</br>Redirecting...')
+	         setTimeout(function() {
+	          window.location.href = "/companies";
+	         }, 4000);
+	          
+
+	      } else {
+	        $('#result').html('Failed to make a server-side call. Check your configuration and console.');
+	         }
+
+	      }
+	      
+	  });
+
+
+	    });
+	  }
+	</script>
+
+	<button>
+		<fb:login-button scope="public_profile,email" onlogin="sendTokenToServer();">
+		<a href='javascript:sendTokenToServer()'>Login with Facebook</a>
+	</fb:login-button>
+	</button>
+
+	<!-- END FACEBOOK SIGN IN -->
+
+
+
+{% endblock %}

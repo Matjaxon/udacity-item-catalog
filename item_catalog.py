@@ -21,6 +21,9 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
+
+
+
 #----------------------------------------------------------------------
 
 # Home page showing list of all categories.
@@ -37,19 +40,20 @@ def showCategoryItems(department):
 	return render_template('departmentItems.html', items = items, department = department)
 
 # Shows all partner vendor companies.
-@app.route('/companies')
+@app.route('/companies/')
 def showCompanies():
 	companies = session.query(Company).order_by(Company.name)
 	return render_template('companies.html', companies = companies)
 
 # Registers a new partner vendor.
-@app.route('/companies/add', methods =['GET', 'POST'])
+@app.route('/companies/add/', methods =['GET', 'POST'])
 def addCompany():
 	if request.method == 'POST':
 		newCompany = Company(name = request.form['name'], 
 			location = request.form['location'], user_id = 1) #Set user_id to 1 for now to associate with Admin.
 		session.add(newCompany)
 		session.commit()
+		flash(newCompany.name + " successfully created!  Check your company page to add available items.")
 		return redirect(url_for('showCompanies'))
 	else:
 		return render_template('addCompany.html')
@@ -62,6 +66,7 @@ def editCompany(company_id):
 		company.name = request.form['name']
 		company.location = request.form['location']
 		session.commit()
+		flash(company.name + " successfully updated.")
 		return redirect(url_for('showItems', company_id = company_id))
 	else:
 		return render_template('editCompany.html', company = company)
@@ -76,13 +81,13 @@ def deleteCompany(company_id):
 			session.delete(item)
 		session.delete(company)
 		session.commit()
+		flash(company.name + " successfully deleted.")
 		return redirect(url_for('showCompanies'))
 	else:
 		return render_template('deleteCompany.html', company = company)
 
-
 # Shows all items across all categories from a given vendor.
-@app.route('/companies/<int:company_id>/items')
+@app.route('/companies/<int:company_id>/items/')
 def showItems(company_id):
 	company = session.query(Company).filter_by(id = company_id).one()
 	items = session.query(CatalogItem).filter_by(company_id = company_id).all()
@@ -90,7 +95,7 @@ def showItems(company_id):
 	return render_template('vendorCatalogItems.html', company = company, items = items, departments = departments)
 
 # Add a new item to a vendor's catalog.
-@app.route('/companies/<int:company_id>/items/new', methods = ['GET', 'POST'])
+@app.route('/companies/<int:company_id>/items/new/', methods = ['GET', 'POST'])
 def addItems(company_id):
 	company = session.query(Company).filter_by(id = company_id).one()
 	if request.method == 'POST':
@@ -100,15 +105,232 @@ def addItems(company_id):
 			company_id = company_id)
 		session.add(newItem)
 		session.commit()
+		flash(newItem.name + " successully added to " + company.name + "'s available items.")
 		return redirect(url_for('showItems', company_id = company_id))
 	else:
 		return render_template('newCatalogItem.html', company = company)
 
+# Edit an existing item.
+@app.route('/companies/<int:company_id>/items/<int:item_id>/edit/', methods = ['GET', 'POST'])
+def editItem(company_id, item_id):
+	company = session.query(Company).filter_by(id = company_id).one()
+	item = session.query(CatalogItem).filter_by(id = item_id).one()
+	if request.method == 'POST':
+		item.name = request.form['name']
+		item.description = request.form['description']
+		item.price = request.form['price']
+		item.category = request.form['category']
+		session.commit()
+		flash(item.name + " successfully edited.")
+		return redirect(url_for('showItems', company_id = company_id))
+	else:
+		return render_template('editCatalogItem.html', company = company, item = item)
 
+# Delete an existing item.
+@app.route('/companies/<int:company_id>/items/<int:item_id>/delete/', methods = ['GET', 'POST'])
+def deleteItem(company_id, item_id):
+	company = session.query(Company).filter_by(id = company_id).one()
+	item = session.query(CatalogItem).filter_by(id = item_id).one()
+	if request.method == 'POST':
+		session.delete(item)
+		session.commit()
+		flash(item.name + " successfully deleted.")
+		return redirect(url_for('showItems', company_id = company_id))
+	else:
+		return render_template('deleteCatalogItem.html', company = company, item = item)
+
+@app.route('/login/')
+def showLogin():
+  state = ''.join(random.choice(string.ascii_uppercase + string.digits) for x 
+    in xrange(32))
+  print state
+  login_session['state'] = state
+  return render_template('login.html', STATE = state)
+
+#-----------------------------------------------------------------------
+
+# LOGIN USING GOOGLE OR FACEBOOK
+
+#-----------------------------------------------------------------------
+
+
+CLIENT_ID = json.loads(
+  open('gconnect_client_secrets.json', 'r').read())['web']['client_id']
+APPLICATION_NAME = "Udacity Item Catalog App Credentials"
+
+def getUserInfo(user_id):
+  user = session.query(Users).filter_by(id = user_id).one()
+  return user
+
+def getUserID(email):
+  try:
+    user = session.query(Users).filter_by(email = email).one()
+    return user.id
+  except:
+    return None
+
+def createUser(login_session):
+  newUser = Users(name = login_session['username'], email = login_session['email'],
+    picture = login_session['picture'])
+  session.add(newUser)
+  session.commit()
+  user = session.query(Users).filter_by(email = login_session['email']).one()
+  return user.id
+
+def getOwnerID(company_id):
+  company = session.query(Company).filter_by(id = company_id).one()
+  ownerID = company.user_id
+  # print ownerID
+  return ownerID
+
+
+# Login using Google Sign In.
+@app.route('/gconnect', methods = ['POST'])
+def gconnect():
+  print ("gconnect started.")
+  if request.args.get('state') != login_session['state']:
+    response = make_response(json.dumps('Invalid state parameter'), 401)
+    response.headers['Content-Type'] = 'application/json'
+    return response
+  code = request.data
+
+  try: 
+    # Upgrade the authorization code into a credential object
+    oauth_flow = flow_from_clientsecrets('gconnect_client_secrets.json', scope = '')
+    oauth_flow.redirect_uri = 'postmessage'
+    credentials = oauth_flow.step2_exchange(code)
+  except FlowExchangeError:
+    response = make_response(json.dumps("Failed to upgrade the authorization code."), 401)
+    response.headers['Content-Type'] = 'application/json'
+    return response
+
+  #Check that authentication token is valid.
+  access_token = credentials.access_token
+  url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token={}'.format(access_token))
+  h = httplib2.Http()
+  result = json.loads(h.request(url, 'GET')[1])
+  # If there was an error in the access token info, abort.
+  if result.get('error') is not None:
+    response = make_response(json.dumps(result.get('error')), 500)
+    reponse.headers['Content-Type'] = 'application/json'
+
+  # Verify that the access token is used for the intended user.
+  gplus_id = credentials.id_token['sub']
+  if result['user_id'] != gplus_id:
+    response = make_response(
+      json.dumps("Token's user ID doesn't match given user ID."), 401)
+    response.headers['Content-Type'] = 'application/json'
+    return response
+
+  # Verify that the access token is valid for this app.
+  if result['issued_to'] != CLIENT_ID:
+    response = make_response(
+      json.dumps("Token's client ID does not match app's."), 401)
+    print "Token's client ID does not match app's."
+    response.headers['Content-Type'] = 'application/json'
+    return response
+
+  # Check to see if user is already logged in.
+  stored_credentials = login_session.get('credentials')
+  stored_gplus_id = login_session.get('gplus_id')
+  if stored_credentials is not None and gplus_id == stored_gplus_id:
+    response = make_response(json.dumps('Current user already connected.'), 200)
+    response.headers['Content-Type'] = 'application/json'
+
+  # Store the access token in the session for later
+  login_session['provider'] = 'google'
+  login_session['credentials'] = credentials
+  login_session['gplus_id'] = gplus_id
+
+  # Get user info
+  userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
+  params = {'access_token': credentials.access_token, 'alt': 'json'}
+  print params
+  answer = requests.get(userinfo_url, params = params)
+  data = answer.json()
+
+  login_session['username'] = data['name']
+  login_session['picture'] = data['picture']
+  login_session['email'] = data['email']
+
+  # See if user exists, if it doesn't make a new one.
+  user_id = getUserID(login_session['email'])
+  if not user_id:
+    user_id = createUser(login_session)
+  login_session['user_id'] = user_id
+
+  output = ''
+  output += '<h1>Welcome, '
+  output += login_session['username']
+  output += '!</h1>'
+  output += '<img src=" '
+  output += login_session['picture']
+  output += ' " style = "width: 300px; height: 300px; border-radius: 150px; '
+  output += ' -webkit-border-radius: 150px; -moz-border-radius: 150px;">'
+  flash('You are now logged in as {}'.format(login_session['username']))
+  return output
+  print "End of login code."
+
+# DISCONNECT - Revoke a current user's token and reset their login_session.
+@app.route('/gdisconnect')
+def gdisconnect():
+  # Only disconnect a connecter user.
+  print login_session
+  credentials = login_session.get('credentials')
+  if credentials is None:  # if credentials is empty then nobody is logged in.
+    response = make_response(
+      json.dumps('Current user not connected.'), 401)
+    response.headers['Content-Type'] = 'application/json'
+    return response
+  # Execute HTTP GET request to revoke current token.
+  access_token = credentials.access_token
+  url = 'https://accounts.google.com/o/oauth2/revoke?token={0}'.format(access_token)
+  h = httplib2.Http()
+  result = h.request(url, "GET")[0]
+
+  if result['status'] != '200':
+    # For whatever reason, the given token was invalid.
+    response = make_response(
+      json.dumps('Failed to revoke token for given user.'), 400)
+    response.headers['Content-Type'] = 'application/json'
+    return response
+
+@app.route('/fbdisconnect')
+def fbdisconnect():
+  facebook_id = login_session['facebook_id']
+  # The access token must be  included to successfully logout
+  access_token = login_session['access_token']
+  url = 'https://graph.facebook.com/{0}/permissions'.format(facebook_id)
+  h = httplib2.Http()
+  result = h.request(url, 'DELETE')[1]
+  return "you have been logged out"
+
+# Allows for a single url to be hit to disconnect for both Google and Facebook.
+@app.route('/disconnect')
+def disconnect():
+  if 'provider' in login_session:
+    if login_session['provider'] == 'google':
+      gdisconnect()
+      del login_session['gplus_id']
+      del login_session['credentials']
+    if login_session['provider'] == 'facebook':
+      fbdisconnect()
+      del login_session['facebook_id']
+    del login_session['username']
+    del login_session['email']
+    del login_session['picture']
+    del login_session['user_id']
+    del login_session['provider']
+    flash ("You have been successfully logged out.")
+    return redirect(url_for('showCategories'))
+
+  else:
+    flash ("You were not logged in to begin with!")
+    return redirect(url_for('showCategories'))
 
 #---------------------------------------------------------------------
 
 if __name__ == '__main__':
-  # app.secret_key = 'super_secret_key'
+  app.secret_key = 'super_secret_key'
   app.debug = True
   app.run(host = '0.0.0.0', port = 5000)

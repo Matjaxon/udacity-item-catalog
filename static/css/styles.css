@@ -31,4 +31,10 @@
 .price {
 	font-style: bold;
 	font-style: italic;
+	text-align: right
+}
+
+.flash {
+	background-color: #FFFFCC;
+	vertical-align: middle;
 }

@@ -7,6 +7,30 @@
 		</div>
 	</div>
 
+
+	{% with messages = get_flashed_messages() %}
+
+	<div class = "row">
+
+		{% if messages %}
+
+		<div class = 'col-sm-12 flash'>
+			<ul>
+				{% for message in messages %}
+					<li><strong> {{ message }} </strong></li>
+				{% endfor %}
+			</ul>
+		</div>
+		</br>
+		</br>
+
+		{% endif %}
+
+	</div>
+
+	{% endwith %}
+
+
 	<div class = 'container company-container'>
 		<h3 style = 'padding-top: 20px'>We proudly sell goods produced or distributed by the following companies:</h3></br>
 		

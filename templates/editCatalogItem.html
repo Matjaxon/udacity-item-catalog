@@ -1,0 +1,47 @@
+{% extends "itemCatalogMain.html" %}
+{% block content %}
+
+	<div class = 'row title'>
+		<div class = 'col-sm-12'>
+			<h1>Edit Catalog Item</h1>
+		</div>
+	</div>
+
+
+	<div class = "row">
+		<div class = "col-12-sm">
+			<h5>You are editing an item for <strong>{{company.name}}</strong>.  Please fill out the information below:</h5>
+		</div>
+	</div>
+	<div class = "row">
+		<div class = "col-sm-12">
+			<form action = "#" method = 'post'>
+				
+				<label>Item Name:</label>
+				<input type = 'text' size = '30' name = 'name' value = '{{item.name}}' required></br></br>
+				
+				<label>Descirption:</label>
+				<input type = 'text' size = '100' name = 'description' value = '{{item.description}}' required></br></br>
+				
+				<label>Department:</label></br>
+				<input type = 'radio' name = 'category' value = 'clothing' {% if item.category == 'clothing' %} checked = "checked" {% endif %} required> Clothing</br>
+				<input type = 'radio' name = 'category' value = 'electronics' {% if item.category == 'electronics' %} checked = "checked" {% endif %}required> Electronics</br>
+				<input type = 'radio' name = 'category' value = 'furniture' {% if item.category == 'furniture' %} checked = "checked" {% endif %} required> Furniture</br>
+				<input type = 'radio' name = 'category' value = 'gifts' {% if item.category == 'gifts' %} checked = "checked" {% endif %} required> Gifts</br>
+				<input type = 'radio' name = 'category' value = 'home_decor' {% if item.category == 'home_decor' %} checked = "checked" {% endif %} required> Home Decor</br>
+				<input type = 'radio' name = 'category' value = 'sports' {% if item.category == 'sports' %} checked = "checked" {% endif %} required> Sports</br>				
+				<input type = 'radio' name = 'category' value = 'tools' {% if item.category == 'tools' %} checked = "checked" {% endif %} required> Tools</br>
+				<input type = 'radio' name = 'category' value = 'toys' {% if item.category == 'toys' %} checked = "checked" {% endif %} required> Toys</br>
+				</br>
+
+				<label>Price:</label>
+				<input type = 'text' size = '10' name = 'price' value = {{item.price}}></br></br>
+
+				<input type = 'submit' value = 'Submit Changes'>
+				<a href = '{{ url_for("showItems", company_id = company.id) }}'>Cancel</a>
+
+			</form>
+		</div>
+	</div>
+
+{% endblock %}
