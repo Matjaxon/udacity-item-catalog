@@ -21,9 +21,6 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
-
-
-
 #----------------------------------------------------------------------
 
 # Home page showing list of all categories.
@@ -187,23 +184,23 @@ def showLogin():
 #-----------------------------------------------------------------------
 
 
-#JSON APIs to view Restaurant Information
+#JSON API - Show all items for a vendor.
 @app.route('/companies/<int:company_id>/items/JSON')
 def showItemsJSON(company_id):
-    company = session.query(Company).filter_by(id = company_id).one()
     items = session.query(CatalogItem).filter_by(company_id = company_id).all()
-    return jsonify(Items=[i.serialize for i in items])
+    return jsonify(Items = [i.serialize for i in items])
 
-
+# JSON API - Show details on a specitic item from a specific vendor.
 @app.route('/companies/<int:company_id>/items/<int:item_id>/JSON')
 def vendorItemJSON(company_id, item_id):
     item = session.query(CatalogItem).filter_by(id = item_id).one()
-    return jsonify(Vendor_Item = Vendor_Item.serialize)
+    return jsonify(Item = item.serialize)
 
-@app.route('/coimpanies/JSON')
+# JSON API - Show all vendor partners.
+@app.route('/companies/JSON')
 def compnaiesJSON():
     companies = session.query(Company).all()
-    return jsonify(Companies = [r.serialize for c in companies])
+    return jsonify(Companies = [c.serialize for c in companies])
 
 
 #-----------------------------------------------------------------------

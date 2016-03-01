@@ -57,7 +57,6 @@ class CatalogItem(Base):
   company = relationship(Company)
   picture = Column(String(250))
 
-
   @property
   def serialize(self):
      """Return object data in easily serializeable format"""
@@ -68,7 +67,7 @@ class CatalogItem(Base):
          'price'        : self.price,
          'category'     : self.category,
          'company_id'   : self.company_id,
-         'company'      : self.company,
+         'company'      : self.company.name,
        }
 
 
