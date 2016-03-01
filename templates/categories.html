@@ -38,7 +38,7 @@
 
 	<div class = "row">
 		<div class = "col-sm-12">
-			<h4><a href = "{{ url_for('showCategoryItems', department = department[0]) }}">{{ department[0].capitalize() }}</a></h4>
+			<h4><a href = "{{ url_for('showCategoryItems', department = department[0]) }}">{{ (department[0].replace('_'," ")).title() }}</a></h4>
 		</div>
 	</div>
 	{% endfor %}

@@ -31,7 +31,7 @@
 
 	{% for department in departments %}
 		<div class = "row">
-			<h3>{{department[0].capitalize() + ':'}}</h3>
+			<h3>{{ (department[0].replace('_',' ')).title() + ':'}}</h3>
 		</div>
 
 		{% for item in items %}

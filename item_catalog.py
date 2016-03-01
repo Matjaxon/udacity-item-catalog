@@ -48,9 +48,11 @@ def showCompanies():
 # Registers a new partner vendor.
 @app.route('/companies/add/', methods =['GET', 'POST'])
 def addCompany():
+	if 'username' not in login_session:
+		return redirect('/login')
 	if request.method == 'POST':
 		newCompany = Company(name = request.form['name'], 
-			location = request.form['location'], user_id = 1) #Set user_id to 1 for now to associate with Admin.
+			location = request.form['location'], user_id = login_session['user_id'])
 		session.add(newCompany)
 		session.commit()
 		flash(newCompany.name + " successfully created!  Check your company page to add available items.")
@@ -61,7 +63,13 @@ def addCompany():
 # Edit an existing vendor partner.
 @app.route('/companies/<int:company_id>/edit/', methods = ['GET', 'POST'])
 def editCompany(company_id):
+	if 'username' not in login_session:
+		return redirect('/login')
 	company = session.query(Company).filter_by(id = company_id).one()
+	if company.user_id != login_session['user_id']:
+	    return "<script>function myFunction() {alert('You are not authorized to edit this vendor page. \
+	    	Please login in to the correct account to make any changes.');}</script> \
+<body onload='myFunction()''>"	
 	if request.method == 'POST':
 		company.name = request.form['name']
 		company.location = request.form['location']
@@ -74,7 +82,13 @@ def editCompany(company_id):
 # Delete company profile.
 @app.route('/companies/<int:company_id>/delete/', methods = ['GET', 'POST'])
 def deleteCompany(company_id):
+	if 'username' not in login_session:
+		return redirect('/login')
 	company = session.query(Company).filter_by(id = company_id).one()
+	if company.user_id != login_session['user_id']:
+	    return "<script>function myFunction() {alert('You are not authorized to make any changes to this vendor page. \
+	    	Please login in to the correct account in order to make any changes.');}</script> \
+<body onload='myFunction()''>"			
 	if request.method == 'POST':
 		itemsToDelete = session.query(CatalogItem).filter_by(company_id = company_id).all()
 		for item in itemsToDelete:
@@ -97,7 +111,13 @@ def showItems(company_id):
 # Add a new item to a vendor's catalog.
 @app.route('/companies/<int:company_id>/items/new/', methods = ['GET', 'POST'])
 def addItems(company_id):
+	if 'username' not in login_session:
+		return redirect('/login')
 	company = session.query(Company).filter_by(id = company_id).one()
+	if company.user_id != login_session['user_id']:
+	    return "<script>function myFunction() {alert('You are not authorized to make any changes to this vendor page. \
+	    	Please login in to the correct account in order to make any changes.');}</script> \
+<body onload='myFunction()''>"			
 	if request.method == 'POST':
 		newItem = CatalogItem(name = request.form['name'], 
 			description = request.form['description'], 
@@ -113,7 +133,13 @@ def addItems(company_id):
 # Edit an existing item.
 @app.route('/companies/<int:company_id>/items/<int:item_id>/edit/', methods = ['GET', 'POST'])
 def editItem(company_id, item_id):
+	if 'username' not in login_session:
+		return redirect('/login')
 	company = session.query(Company).filter_by(id = company_id).one()
+	if company.user_id != login_session['user_id']:
+	    return "<script>function myFunction() {alert('You are not authorized to make any changes to this vendor page. \
+	    	Please login in to the correct account in order to make any changes.');}</script> \
+<body onload='myFunction()''>"		
 	item = session.query(CatalogItem).filter_by(id = item_id).one()
 	if request.method == 'POST':
 		item.name = request.form['name']
@@ -129,7 +155,13 @@ def editItem(company_id, item_id):
 # Delete an existing item.
 @app.route('/companies/<int:company_id>/items/<int:item_id>/delete/', methods = ['GET', 'POST'])
 def deleteItem(company_id, item_id):
+	if 'username' not in login_session:
+		return redirect('/login')
 	company = session.query(Company).filter_by(id = company_id).one()
+	if company.user_id != login_session['user_id']:
+	    return "<script>function myFunction() {alert('You are not authorized to make any changes to this vendor page. \
+	    	Please login in to the correct account in order to make any changes.');}</script> \
+<body onload='myFunction()''>"		
 	item = session.query(CatalogItem).filter_by(id = item_id).one()
 	if request.method == 'POST':
 		session.delete(item)
@@ -146,6 +178,33 @@ def showLogin():
   print state
   login_session['state'] = state
   return render_template('login.html', STATE = state)
+
+
+#-----------------------------------------------------------------------
+
+# API ENDPOINTS
+
+#-----------------------------------------------------------------------
+
+
+#JSON APIs to view Restaurant Information
+@app.route('/companies/<int:company_id>/items/JSON')
+def showItemsJSON(company_id):
+    company = session.query(Company).filter_by(id = company_id).one()
+    items = session.query(CatalogItem).filter_by(company_id = company_id).all()
+    return jsonify(Items=[i.serialize for i in items])
+
+
+@app.route('/companies/<int:company_id>/items/<int:item_id>/JSON')
+def vendorItemJSON(company_id, item_id):
+    item = session.query(CatalogItem).filter_by(id = item_id).one()
+    return jsonify(Vendor_Item = Vendor_Item.serialize)
+
+@app.route('/coimpanies/JSON')
+def compnaiesJSON():
+    companies = session.query(Company).all()
+    return jsonify(Companies = [r.serialize for c in companies])
+
 
 #-----------------------------------------------------------------------
 
@@ -270,6 +329,80 @@ def gconnect():
   flash('You are now logged in as {}'.format(login_session['username']))
   return output
   print "End of login code."
+
+# Login using Facebook Log in
+@app.route('/fbconnect', methods = ['POST'])
+def fbconnect():
+  print ("fbconnect started.")
+  if request.args.get('state') != login_session['state']:
+    response = make_response(
+      json.dumps('Invalid state parameter.'), 401)
+    response.headers['Content-Type'] = 'application/json'
+    return response
+
+  access_token = request.data
+  print ("access token received {0}".format(access_token))
+
+  # Exchange client token for long-lived server-side token with GET /oauth/
+  # access_token?grant_type=fb_exchange_token&client_id={app-id}&client_sercret \
+  # ={app-secret}&fb_exchange_token={short-lived-token}
+  app_id = json.loads(
+  	open('fb_client_secrets.json', 'r').read())['web']['app_id']
+  print ("App ID: {0}".format(app_id))
+  app_secret = json.loads(
+    open('fb_client_secrets.json', 'r').read())['web']['app_secret']
+  print ("App Secret: {0}".format(app_secret))
+  url = 'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id={0}&client_secret={1}&fb_exchange_token={2}'.format(app_id, 
+    app_secret, access_token)
+  h = httplib2.Http()
+  result = h.request(url, 'GET')[1]
+
+  # Use token to get user info from API
+  userinfo_url = 'https://graph.facebook.com/v2.5/me'
+  # strip expire tag from access token
+  token = result.split("&")[0]
+
+  url = 'https://graph.facebook.com/v2.5/me?{0}&fields=name,id,email'.format(token)
+
+  h = httplib2.Http()
+  result = h.request(url, 'GET')[1]
+  print ("url sent from API access:{0}".format(url))
+  print "API JSON result: {0}".format(result)
+  data = json.loads(result)
+  login_session['provider'] = 'facebook'
+  login_session['username'] = data['name']
+  login_session['email'] = data['email']
+  login_session['facebook_id'] = data['id']
+
+  # The tokoen must be stored in the login_session in order to properly logout, let's strip out the information before the equals sign in our token.
+  stored_token = token.split("=")[1]
+  login_session['access_token'] = stored_token
+
+  # Get user picture
+  url = 'https://graph.facebook.com/v2.5/me/picture?{0}&redirect=0&height=200&width=200'.format(token)
+  h = httplib2.Http()
+  result = h.request(url, 'GET')[1]
+  data = json.loads(result)
+
+  login_session['picture'] = data['data']['url']
+
+  # See if user exists
+  user_id = getUserID(login_session['email'])
+  if not user_id:
+    user_id = createrUser(login_session)
+  login_session['user_id'] = user_id
+
+  output = ''
+  output += '<h1>Welcome, '
+  output += login_session['username']
+
+  output += '!</h1>'
+  output += '<img src='
+  output += login_session['picture']
+  output += ' "style = "width: 300px; height: 300px; border-radius: 150px; -webkit-border-radius: 150px; -moz-border-radius: 150px; -moz-border-radius: 150px;">'
+
+  flash("Now logged in as {0}".format(login_session['username']))
+  return output
 
 # DISCONNECT - Revoke a current user's token and reset their login_session.
 @app.route('/gdisconnect')
